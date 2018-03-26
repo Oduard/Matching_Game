@@ -1,0 +1,292 @@
+import javafx.application.Application;
+import javafx.scene.control.Label;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import javafx.geometry.*;
+import javafx.scene.*;
+import javafx.scene.control.Button;
+import javafx.scene.image.*;
+import javafx.scene.layout.*;
+import javafx.animation.*;
+import javafx.util.*;
+import java.util.*;
+
+
+public class JavaFX_Project_Memory_Game extends Application {
+    private int clickTracker = 1;
+    private int counter = 0;
+    private Object source = new Object();
+    private String[] cardType = {"apple", "bananas", "cherries", "grapes", "lime", "orange", "peach", "pear", "pineapple", "strawberry"};
+    private List<Card> deck = new ArrayList<>();
+    private int score = 0;
+    private Label displayScore = new Label("Score: " + score);
+
+    protected BorderPane getPane() {
+
+        // Pane creation
+        BorderPane pane = new BorderPane();
+        Pane paneForText = new Pane();
+        VBox info = new VBox(10);
+        HBox paneForButtons = new HBox(20);
+        VBox home = new VBox(20);
+        VBox author = new VBox(20);
+        Game memory = new Game();
+
+        //Positions on Border pane
+        pane.setAlignment(paneForButtons, Pos.CENTER);
+        pane.setMargin(paneForButtons, new Insets(15, 10, 15, 10));
+        pane.setTop(paneForButtons);
+        pane.setMargin(home, new Insets(200, 200, 200, 500));
+        pane.setCenter(home);
+        pane.setMargin(author, new Insets(200, 200, 200, 500));
+        pane.setCenter(author);
+        pane.setBottom(paneForText);
+
+        // Author pane
+        author.setPadding(new Insets(50, 100, 50, 100));
+        ImageView photo = new ImageView(new Image("image/photo.jpg"));
+        photo.setFitWidth(100);
+        photo.setPreserveRatio(true);
+        photo.setSmooth(true);
+        photo.setCache(true);
+        Label name = new Label ("Eduardo Arguello");
+        name.setFont(Font.font(36));
+        Label authorInfo = new Label("Education status: Freshman\n" +
+                "Hobbies: Cooking\n");
+        authorInfo.setFont(Font.font(18));
+        author.getChildren().addAll(photo, name, authorInfo);
+
+        // Home pane
+        home.setPadding(new Insets(50, 100, 50, 100));
+        Label welcome = new Label ("Welcome!");
+        welcome.setFont(Font.font(36));
+        Label course = new Label("Class: CS 1302\n" +
+                "Section: 09\n" +
+                "Professor: Cepeda Mora, Carlos\n" +
+                "Name: Eduardo Arguello\n" +
+                "Assignment: JavaFX Proyect");
+        course.setFont(Font.font(18));
+        home.getChildren().addAll(welcome, course);
+
+        // Info Pane
+        Button reset_PlayAgain = new Button("Reset / Play Again", new ImageView("image/reset.png"));
+        reset_PlayAgain.setFont(Font.font(24));
+        Label gameName = new Label("Memory Game");
+        gameName.setFont(Font.font(36));
+        Label gameInfo = new Label( "The object of the game is to turn over pairs of matching cards.\n" +
+                "In turn, player chooses two cards and turns them face up.\n" +
+                "If they are of the same then the player wins the pair and plays again.\n" +
+                "If they are not of the same, they are turned face down again.\n" +
+                "The game ends when the last pair has been picked up.");
+        gameInfo.setFont(Font.font(18));
+        displayScore.setFont(Font.font(24));
+        info.getChildren().addAll(gameName, gameInfo, displayScore, reset_PlayAgain);
+        info.setAlignment(Pos.CENTER);
+        info.setPadding(new Insets(50, 100, 50, 100)); // Bind
+
+        // Buttons block
+        Button btHome = new Button("Home", new ImageView("image/home.png"));
+        Button btAuthor1 = new Button("Author1", new ImageView("image/author1.png"));
+        Button btAuthor2 = new Button("Author2", new ImageView("image/author2.png"));
+        Button btGame = new Button("Game", new ImageView("image/game.png"));
+
+        paneForButtons.getChildren().addAll(btHome, btAuthor1, btAuthor2, btGame);
+        paneForButtons.setAlignment(Pos.CENTER);
+
+        //Buttons actions
+        btHome.setOnAction(e -> {
+            pane.setLeft(null);
+            pane.setCenter(home);
+            pane.setRight(null);
+        });
+
+        btAuthor1.setOnAction(event -> {
+            pane.setLeft(null);
+            pane.setCenter(author);
+            pane.setRight(null);
+        });
+
+        btAuthor2.setOnAction(event -> {
+            pane.setLeft(null);
+            pane.setCenter(null);
+            pane.setRight(null);
+        });
+
+        btGame.setOnAction(e -> {
+            pane.setCenter(memory);
+            pane.setRight(info);
+        });
+
+        reset_PlayAgain.setOnAction(e -> {
+            memory.reset();
+        });
+
+        pane.setCenter(home);
+
+        return pane;
+    }
+
+    public class Game extends GridPane{
+        public Game() {
+            this.setAlignment(Pos.CENTER);
+            this.setPadding(new Insets(12, 13, 12, 13));
+            this.setHgap(10);
+            this.setVgap(10);
+
+            // Loop to add 10 pairs to ArrayList 'deck'
+            for(int i = 0; i < 10; i++){
+                for(int j = i * 2; j <= (i * 2) +1; j++){
+                    deck.add(j, new Card(cardType[i]));
+                }
+            }
+            shuffleDeck();
+            setCards();
+        }
+
+        private void shuffleDeck() {
+            // Shuffles the deck
+            Collections.shuffle(deck);
+        }
+
+        private void setCards() {
+            // Loop to set cards from deck to grid
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 5; j++) {
+                    this.add(deck.get(counter), j, i);
+                    counter++;
+                }
+            }
+            counter = 0;
+        }
+
+        private void reset(){
+            this.getChildren().clear();
+            for(int i = 0; i < deck.size(); i++){
+                deck.get(i).reset();
+            }
+            this.shuffleDeck();
+            this.setCards();
+            score = 0;
+            clickTracker = 1;
+            displayScore.setText("Score: " + score);
+        }
+
+    }
+
+        public class Card extends javafx.scene.layout.StackPane implements Comparable {
+        final String NAME;
+        private int clickable = 1;
+        ImageView back = new ImageView(new Image("image/back.gif"));
+        ImageView front = new ImageView();
+        Image frontImage;
+
+        public Card(String path){
+            NAME = path;
+            back.setFitWidth(100);
+            back.setPreserveRatio(true);
+            back.setSmooth(true);
+            back.setCache(true);
+            frontImage = new Image ("image/" + path + ".png");
+            front.setImage(frontImage);
+            front.setFitWidth(90);
+            front.setFitHeight(130);
+            front.setPreserveRatio(true);
+            front.setSmooth(true);
+            front.setCache(true);
+            this.getChildren().addAll(front, back);
+            this.setOnMouseClicked(
+                    e -> click(e.getSource()));
+
+        }
+
+        public ImageView getImageView(){
+            return this.back;
+        }
+
+        public String getName(){
+            return this.NAME;
+        }
+
+        public void setClickable(int a) {
+            this.clickable = a;
+        }
+
+        public void reset(){
+            this.clickable = 1;
+            Fade(this.back, 1, 1);
+        }
+
+        protected void click (Object ob){
+            if(clickable == 1)
+                if(clickTracker != 2){
+                    Fade(this.back, 0, 1.0);
+                    clickTracker++;
+                    source = ob;
+                    this.clickable = 0;
+                }
+                else {
+                    Card myCard = ((Card)source);
+                    Fade(this.back, 0, 1.0);
+                    if(this.compareTo(myCard) == 1) {
+                        this.clickable = 0;
+                        myCard.setClickable(0);
+                        score = score + 10;
+                        displayScore.setText("Score: " + score);
+                    }
+                    else {
+                        Timeline timeline  = new Timeline(new KeyFrame(Duration.millis(1000), event -> Fade(myCard.getImageView(), 1.0, 0)));
+                        timeline.setCycleCount(1);
+                        timeline.play();
+                        Timeline timeline2  = new Timeline(new KeyFrame(Duration.millis(1000), event -> Fade(this.back, 1.0, 0)));
+                        timeline2.setCycleCount(1);
+                        timeline2.play();
+                        myCard.setClickable(1);
+                    }
+                    clickTracker = 1;
+                }
+        }
+
+        protected void Fade (ImageView imView, double to, double from){
+            FadeTransition ft = new FadeTransition(Duration.millis(1000), imView);
+            ft.setFromValue(from);
+            ft.setToValue(to);
+            ft.setCycleCount(1);
+            ft.setAutoReverse(false);
+            ft.play();
+        }
+
+        @Override
+        public int compareTo(Object obj){
+            if (obj instanceof Card) {
+                Card card = (Card) obj;
+                if (this.NAME.equals(card.getName()))
+                    return 1;
+                else
+                    return -1;
+            }
+            return 0;
+        }
+    }
+
+    @Override // Override the start method in the Application class
+    public void start(Stage primaryStage) {
+
+        // Create a scene and place it in the stage
+        Scene scene = new Scene(getPane());
+
+        primaryStage.setTitle("Memory Game"); // Set the stage title
+        primaryStage.setScene(scene); // Place the scene in the stage
+        primaryStage.show(); // Display the stage
+        primaryStage.setFullScreen(true);
+    }
+
+    /**
+     * The main method is only needed for the IDE with limited
+     * JavaFX support. Not needed for running from the command line.
+     */
+
+    public static void main(String[] args) {
+        launch(args);
+
+    }
+}
